@@ -1,4 +1,5 @@
-import React from "react";
+import React, { useRef, useEffect } from "react";
+import styled from "styled-components";
 import {
   convertFromRaw,
   convertToRaw,
@@ -9,107 +10,93 @@ import {
 } from "draft-js";
 import rawContent from "utils/rawContent";
 
+const SEditor = styled.div``;
+
+SEditor.Container = styled.div`
+  border: 0.5px dotted red;
+  cursor: text;
+  min-height: 80;
+  padding: 10;
+`;
+
 class CollabEditor extends React.Component {
   constructor(props) {
     super(props);
 
-    const decorator = new CompositeDecorator([
-      {
-        strategy: getEntityStrategy("IMMUTABLE"),
-        component: TokenSpan
-      },
-      {
-        strategy: getEntityStrategy("MUTABLE"),
-        component: TokenSpan
-      },
-      {
-        strategy: getEntityStrategy("SEGMENTED"),
-        component: TokenSpan
-      }
-    ]);
-
-    const blocks = convertFromRaw(rawContent);
-
+    const content = convertFromRaw(rawContent);
     this.state = {
-      editorState: EditorState.createWithContent(blocks, decorator)
+      editorState: EditorState.createWithContent(content)
     };
 
     this.focus = () => this.refs.editor.focus();
-    this.onChange = editorState => this.setState({ editorState });
-    this.logState = () => {
-      const content = this.state.editorState.getCurrentContent();
-      console.log(convertToRaw(content));
+    this.onChange = editorState => {
+      const currentSelection = this.state.editorState.getSelection();
+      const stateWithContentAndSelection = EditorState.forceSelection(
+        editorState,
+        currentSelection
+      );
+
+      this.setState({ editorState: stateWithContentAndSelection });
     };
   }
 
+  blockRenderer = contentBlock => {
+    const type = contentBlock.getType();
+    if (type === "user") {
+      return {
+        component: HighlightedBlock,
+        editable: true,
+        props: this.props
+      };
+    }
+  };
+
   render() {
     return (
-      <div style={styles.root}>
-        <div style={styles.editor} onClick={this.focus}>
+      <SEditor>
+        <SEditor.Container class onClick={this.focus}>
           <Editor
             editorState={this.state.editorState}
+            blockRendererFn={this.blockRenderer}
             onChange={this.onChange}
             placeholder="Enter some text..."
             ref="editor"
           />
-        </div>
-        <input
-          onClick={this.logState}
-          style={styles.button}
-          type="button"
-          value="Log State"
-        />
-      </div>
+        </SEditor.Container>
+      </SEditor>
     );
   }
 }
 
-function getEntityStrategy(mutability) {
-  return function(contentBlock, callback, contentState) {
-    contentBlock.findEntityRanges(character => {
-      const entityKey = character.getEntity();
-      if (entityKey === null) {
-        return false;
-      }
-      return contentState.getEntity(entityKey).getMutability() === mutability;
-    }, callback);
-  };
-}
+const SHighlightedBlock = styled.div`
+  display: inherit;
+  border: solid 1px rgba(200, 200, 255, 0.75);
+  background-color: rgba(200, 200, 255, 0.1);
+  padding: 10px;
+  border-radius: 3px;
 
-// function myBlockRenderer(contentBlock) {
-//   const type = contentBlock.getType();
-//   if (type === 'atomic') {
-//     return {
-//       component: MediaComponent,
-//       editable: false,
-//       props: {
-//         foo: 'bar',
-//       },
-//     };
-//   }
-// }
-
-const TokenSpan = props => {
-  return (
-    <span data-offset-key={props.offsetkey} style={styles.highlighted}>
-      {props.children}
-    </span>
-  );
-};
-
-const styles = {
-  editor: {
-    border: "1px solid #ccc",
-    cursor: "text",
-    minHeight: 80,
-    padding: 10
-  },
-  highlighted: {
-    backgroundColor: "rgba(204, 204, 255, 1.0)",
-    zIndex: -1,
-    padding: "20px"
-    // border: "1px solid black"
+  div {
+    display: inline;
   }
+`;
+
+const HighlightedBlock = props => {
+  const el = useRef(null);
+  const text = props.block.text;
+  const blockProps = props.blockProps;
+
+  useEffect(() => {
+    let userChips = [...blockProps.userChips];
+    let position = el.current.getBoundingClientRect().y;
+    userChips[0].location = position;
+    blockProps.setUserChips(userChips);
+  });
+
+  return (
+    <SHighlightedBlock ref={el}>
+      <div>{text}</div>
+    </SHighlightedBlock>
+  );
 };
 
 export { CollabEditor };
