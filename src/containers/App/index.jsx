@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import styled from "styled-components";
 import { GlobalStyle } from "utils";
-import { MenuBar, ToolBar, CollabEditor } from "components";
+import { MenuBar, ToolBar, CollabEditor } from "containers";
 import UserChip from "./UserChip";
 
 const SPaperC = styled.div`

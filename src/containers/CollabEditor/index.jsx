@@ -54,7 +54,7 @@ class CollabEditor extends React.Component {
   render() {
     return (
       <SEditor>
-        <SEditor.Container class onClick={this.focus}>
+        <SEditor.Container onClick={this.focus}>
           <Editor
             editorState={this.state.editorState}
             blockRendererFn={this.blockRenderer}
