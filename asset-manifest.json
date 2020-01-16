@@ -1,0 +1,20 @@
+{
+  "files": {
+    "main.js": "/litedoc-frontend/static/js/main.d1d9a910.chunk.js",
+    "main.js.map": "/litedoc-frontend/static/js/main.d1d9a910.chunk.js.map",
+    "runtime-main.js": "/litedoc-frontend/static/js/runtime-main.51b9ec46.js",
+    "runtime-main.js.map": "/litedoc-frontend/static/js/runtime-main.51b9ec46.js.map",
+    "static/js/2.1f208a77.chunk.js": "/litedoc-frontend/static/js/2.1f208a77.chunk.js",
+    "static/js/2.1f208a77.chunk.js.map": "/litedoc-frontend/static/js/2.1f208a77.chunk.js.map",
+    "index.html": "/litedoc-frontend/index.html",
+    "precache-manifest.c207672a10beecaa47f5c3a198930bf8.js": "/litedoc-frontend/precache-manifest.c207672a10beecaa47f5c3a198930bf8.js",
+    "service-worker.js": "/litedoc-frontend/service-worker.js",
+    "static/js/2.1f208a77.chunk.js.LICENSE": "/litedoc-frontend/static/js/2.1f208a77.chunk.js.LICENSE",
+    "static/media/saptakumar.png": "/litedoc-frontend/static/media/saptakumar.037785cb.png"
+  },
+  "entrypoints": [
+    "static/js/runtime-main.51b9ec46.js",
+    "static/js/2.1f208a77.chunk.js",
+    "static/js/main.d1d9a910.chunk.js"
+  ]
+}
