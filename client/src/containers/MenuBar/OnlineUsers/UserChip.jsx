@@ -6,10 +6,14 @@ const UserChip = styled.img`
   height: 36px;
   border-radius: 50%;
   border: 2px solid ${props => props.color};
-  margin-left: -15px;
+  margin-left: -12px;
 
   user-select: none;
   user-drag: none;
+
+  :hover {
+    cursor: pointer;
+  }
 `;
 
 export default UserChip;

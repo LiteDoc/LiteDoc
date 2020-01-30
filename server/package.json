@@ -1,0 +1,18 @@
+{
+  "name": "LiteDoc-Server",
+  "version": "1.0.0",
+  "main": "index.js",
+  "author": "Roger Wang <rogerwangcs@gmail.com>",
+  "license": "MIT",
+  "private": false,
+  "scripts": {
+    "start": "node index.js",
+    "dev": "nodemon index.js"
+  },
+  "dependencies": {
+    "babel-cli": "^6.26.0",
+    "express": "^4.17.1",
+    "nodemon": "^2.0.1",
+    "socket.io": "^2.3.0"
+  }
+}
