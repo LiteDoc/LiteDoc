@@ -1,3 +1,3 @@
-# LiteDoc Frontend
+# LiteDoc Client and Server
 
 Collaborative text editor

@@ -5,7 +5,10 @@ const theme = {
   gray3: "#ededed",
 
   white0: "#FFFFFF",
-  white1: "#F4F4F4"
+  white1: "#F4F4F4",
+
+  green: "#41E441",
+  red: "#F55050 "
 };
 
 export { theme };

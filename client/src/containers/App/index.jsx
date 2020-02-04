@@ -3,10 +3,10 @@ import styled from "styled-components";
 import { GlobalStyle } from "utils";
 import { MenuBar, ToolBar, CollabEditor } from "containers";
 import UserChip from "./UserChip";
+import OwnerBar from "./OwnerBar";
 import { BasicEditor } from "components";
 
 import io from "socket.io-client";
-
 let names = ["Roger", "Lewis", "Haochen", "Sapta"];
 let randName = names[Math.floor(Math.random() * names.length)];
 const socketUrl = "localhost:4000";
@@ -22,7 +22,7 @@ const SPaperC = styled.div`
     margin: auto;
     border-radius: 10px;
     box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1), 0 5px 10px rgba(0, 0, 0, 0.15);
-    background-color: white;
+    background-color: ${props => (props.isLocked ? "#F0F0F0" : "white")};
     width: 800px;
     height: 1050px;
   }
@@ -35,32 +35,38 @@ const SPaperC = styled.div`
 
 function App() {
   const [userChips, setUserChips] = useState([{ name: "Roger", location: 0 }]);
-  // const [pages, setPages] = useState([{ id: 1 }, { id: 2 }, { id: 3 }]);
-  const [registers, setRegisters] = useState({
-    1: { data: "test1" },
-    2: { data: "test2" },
-    3: { data: "test3" }
-  });
+  const [registers, setRegisters] = useState([]);
+  const [name, setName] = useState(randName);
 
-  const updateRegister = (registerId, data) => {
-    let newRegisters = { ...registers };
-    newRegisters[registerId].data = data;
-    setRegisters(newRegisters);
-    console.log(registers);
+  // const updateRegister = (registerId, data) => {
+  //   let newRegisters = { ...registers };
+  //   newRegisters[registerId].data = data;
+  //   setRegisters(newRegisters);
+  //   console.log(registers);
+  // };
+
+  // const [, updateState] = React.useState();
+  // const forceUpdate = useCallback(() => updateState({}), []);
+
+  // const getLocalRegisters = () => {
+  //   return JSON.parse(localStorage.getItem("registers"));
+  // };
+
+  // const setLocalRegisters = (registerId, data) => {
+  //   let newRegisters = getLocalRegisters();
+  //   newRegisters[registerId].data = data;
+  //   localStorage.setItem("registers", JSON.stringify(newRegisters));
+  //   socket.emit("clientUpdateRegisters");
+  // };
+
+  const writeToRegister = (registerId, data) => {};
+
+  const lockRegister = registerId => {
+    socket.emit("lockRegister", { name: name, registerId: registerId });
   };
 
-  const [, updateState] = React.useState();
-  const forceUpdate = useCallback(() => updateState({}), []);
-
-  const getLocalRegisters = () => {
-    return JSON.parse(localStorage.getItem("registers"));
-  };
-
-  const setLocalRegisters = (registerId, data) => {
-    let newRegisters = getLocalRegisters();
-    newRegisters[registerId].data = data;
-    localStorage.setItem("registers", JSON.stringify(newRegisters));
-    socket.emit("clientUpdateRegisters");
+  const unlockRegister = registerId => {
+    socket.emit("unlockRegister", { name: name, registerId: registerId });
   };
 
   const renderUserChips = userChips.map(chip => {
@@ -68,26 +74,27 @@ function App() {
   });
 
   useEffect(() => {
-    // let resetRegisters = {
-    //   1: { data: "test1" },
-    //   2: { data: "test2" },
-    //   3: { data: "test3" }
-    // };
-    // localStorage.setItem("registers", JSON.stringify(resetRegisters));
-
-    socket.on("serverUpdateRegisters", () => {
-      forceUpdate();
+    socket.emit("getRegisterUpdate");
+    socket.on("registerUpdate", registers => {
+      setRegisters(registers);
     });
-  }, [forceUpdate]);
+  }, []);
 
-  const renderPages = Object.keys(getLocalRegisters()).map(registerId => {
+  const renderPages = Object.keys(registers).map(registerId => {
     return (
-      <SPaperC key={registerId}>
+      <SPaperC key={registerId} isLocked={registers[registerId].isLocked}>
+        <OwnerBar
+          name={name}
+          registerId={registerId}
+          register={registers[registerId]}
+          lockRegister={lockRegister}
+          unlockRegister={unlockRegister}
+        />
         <div className="page-container">
           <BasicEditor
             registerId={registerId}
-            register={getLocalRegisters()[registerId]}
-            updateRegister={setLocalRegisters}
+            register={registers[registerId]}
+            updateRegister={writeToRegister}
           />
           {/* <CollabEditor
             pageId={registerId}
@@ -106,6 +113,7 @@ function App() {
       <div className="App">
         <MenuBar />
         <ToolBar />
+        <h1>{name}</h1>
         <div style={{ marginTop: "125px" }} />
         <div>{renderPages}</div>
         {/* <div>{renderUserChips}</div> */}
