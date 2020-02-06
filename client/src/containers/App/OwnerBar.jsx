@@ -12,7 +12,7 @@ const SOwnerBar = styled.div`
 `;
 
 const SLockButton = styled.div`
-  background-color: green;
+  background-color: ${props => props.color};
   padding: 15px 25px;
   margin: 15px;
   border-radius: 30px;

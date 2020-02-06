@@ -6,6 +6,8 @@ const STextArea = styled.textarea`
   height: 100%;
   background-color: transparent;
   border: none;
+
+  font-size: 16px;
 `;
 
 const BasicEditor = props => {

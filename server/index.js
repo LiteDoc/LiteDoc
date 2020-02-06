@@ -46,6 +46,13 @@ io.on("connection", socket => {
     io.emit("registerUpdate", registers);
   });
 
+  socket.on("writeToRegister", res => {
+    const { registerId, data } = res;
+    registers[registerId].data = data;
+    console.log(data);
+    io.emit("registerUpdate", registers);
+  });
+
   socket.on("disconnect", () => {
     console.log(`Client Disconnected: ${socket.id}`);
   });

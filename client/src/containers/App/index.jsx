@@ -22,7 +22,8 @@ const SPaperC = styled.div`
     margin: auto;
     border-radius: 10px;
     box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1), 0 5px 10px rgba(0, 0, 0, 0.15);
-    background-color: ${props => (props.isLocked ? "#F0F0F0" : "white")};
+    background-color: ${props =>
+      props.isOwner ? "white" : "rgb(225,225,225)"};
     width: 800px;
     height: 1050px;
   }
@@ -45,8 +46,8 @@ function App() {
   //   console.log(registers);
   // };
 
-  // const [, updateState] = React.useState();
-  // const forceUpdate = useCallback(() => updateState({}), []);
+  const [, updateState] = React.useState();
+  const forceUpdate = useCallback(() => updateState({}), []);
 
   // const getLocalRegisters = () => {
   //   return JSON.parse(localStorage.getItem("registers"));
@@ -59,7 +60,13 @@ function App() {
   //   socket.emit("clientUpdateRegisters");
   // };
 
-  const writeToRegister = (registerId, data) => {};
+  const writeToRegister = (registerId, data) => {
+    const isLocked = registers[registerId].isLocked;
+    const isOwner = name === registers[registerId].owner;
+    if (isLocked && isOwner) {
+      socket.emit("writeToRegister", { registerId: registerId, data: data });
+    }
+  };
 
   const lockRegister = registerId => {
     socket.emit("lockRegister", { name: name, registerId: registerId });
@@ -82,7 +89,12 @@ function App() {
 
   const renderPages = Object.keys(registers).map(registerId => {
     return (
-      <SPaperC key={registerId} isLocked={registers[registerId].isLocked}>
+      <SPaperC
+        key={registerId}
+        isOwner={
+          registers[registerId].isLocked && registers[registerId].owner === name
+        }
+      >
         <OwnerBar
           name={name}
           registerId={registerId}
@@ -111,7 +123,7 @@ function App() {
     <React.Fragment>
       <GlobalStyle />
       <div className="App">
-        <MenuBar />
+        <MenuBar name={name} />
         <ToolBar />
         <h1>{name}</h1>
         <div style={{ marginTop: "125px" }} />

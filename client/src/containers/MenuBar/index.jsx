@@ -23,11 +23,12 @@ const SMenuBar = styled.div`
   }
 `;
 
-const MenuBar = () => {
+const MenuBar = props => {
   return (
     <SMenuBar>
       <MenuButton />
       <DocTitle />
+      {props.name}
       <OnlineUsers />
     </SMenuBar>
   );
