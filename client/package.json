@@ -7,6 +7,8 @@
     "@fortawesome/fontawesome-svg-core": "^1.2.26",
     "@fortawesome/free-solid-svg-icons": "^5.12.0",
     "@fortawesome/react-fontawesome": "^0.1.8",
+    "axios": "^0.19.2",
+    "cassandra-driver": "^4.4.0",
     "draft-js": "^0.11.3",
     "react": "^16.12.0",
     "react-dom": "^16.12.0",

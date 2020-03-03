@@ -1,15 +1,18 @@
 import React, { useState, useEffect, useCallback } from "react";
+import axios from "axios";
+import io from "socket.io-client";
+
 import styled from "styled-components";
 import { GlobalStyle } from "utils";
+
 import { MenuBar, ToolBar, CollabEditor } from "containers";
 import UserChip from "./UserChip";
 import OwnerBar from "./OwnerBar";
 import { BasicEditor } from "components";
 
-import io from "socket.io-client";
 let names = ["Roger", "Lewis", "Haochen", "Sapta"];
 let randName = names[Math.floor(Math.random() * names.length)];
-const socketUrl = "localhost:4000";
+const socketUrl = ["localhost:4000"];
 const socket = io(socketUrl, {
   query: {
     name: randName
@@ -34,7 +37,17 @@ const SPaperC = styled.div`
   }
 `;
 
+const availableServers = [
+  "http://localhost:4000",
+  "http://localhost:4001",
+  "http://localhost:4002",
+  "http://localhost:4003",
+  "http://localhost:4004"
+];
+
 function App() {
+  const [proxyServer, setProxyServer] = useState(availableServers[0]);
+
   const [userChips, setUserChips] = useState([{ name: "Roger", location: 0 }]);
   const [registers, setRegisters] = useState([]);
   const [name, setName] = useState(randName);
@@ -46,7 +59,7 @@ function App() {
   //   console.log(registers);
   // };
 
-  const [, updateState] = React.useState();
+  const [_, updateState] = React.useState();
   const forceUpdate = useCallback(() => updateState({}), []);
 
   // const getLocalRegisters = () => {
@@ -80,8 +93,24 @@ function App() {
     return <UserChip userChip={chip} />;
   });
 
+  const chooseProxy = async () => {
+    let params = {
+      name: name
+    };
+
+    let url = proxyServer + "/connect";
+
+    const res = await axios.get(
+      url,
+      { params: params, withCredentials: true },
+      { withCredentials: true }
+    );
+    console.log(res);
+  };
+
   useEffect(() => {
-    socket.emit("getRegisterUpdate");
+    chooseProxy();
+
     socket.on("registerUpdate", registers => {
       setRegisters(registers);
     });

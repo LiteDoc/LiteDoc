@@ -16,6 +16,16 @@ const registers = {
   3: { isLocked: false, owner: null, queue: [], data: "servertest3" }
 };
 
+const cassandra = require("cassandra-driver");
+const client = new cassandra.Client({
+  contactPoints: ["127.0.0.1:9042"],
+  localDataCenter: "datacenter1",
+  keyspace: "testspace"
+});
+// console.log(client);
+const query = "SELECT * FROM testtable";
+client.execute(query).then(result => console.log(result));
+
 io.on("connection", socket => {
   const name = socket.handshake.query.name;
   console.log(`Client Joined: ${name}`);
