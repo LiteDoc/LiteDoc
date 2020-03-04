@@ -10,15 +10,6 @@ import UserChip from "./UserChip";
 import OwnerBar from "./OwnerBar";
 import { BasicEditor } from "components";
 
-let names = ["Roger", "Lewis", "Haochen", "Sapta"];
-let randName = names[Math.floor(Math.random() * names.length)];
-const socketUrl = ["localhost:4000"];
-const socket = io(socketUrl, {
-  query: {
-    name: randName
-  }
-});
-
 const SPaperC = styled.div`
   .page-container {
     padding: 25px;
@@ -38,55 +29,92 @@ const SPaperC = styled.div`
 `;
 
 const availableServers = [
-  "http://localhost:4000",
   "http://localhost:4001",
   "http://localhost:4002",
-  "http://localhost:4003",
-  "http://localhost:4004"
+  "http://localhost:4003"
 ];
 
 function App() {
-  const [proxyServer, setProxyServer] = useState(availableServers[0]);
+  // let names = ["Roger", "Lewis", "Haochen", "Sapta"];
+  let names = ["Roger"];
+  let randName = names[Math.floor(Math.random() * names.length)];
 
+  const [proxyServer, setProxyServer] = useState(availableServers[0]);
   const [userChips, setUserChips] = useState([{ name: "Roger", location: 0 }]);
   const [registers, setRegisters] = useState([]);
+  const [registerLocks, setRegisterLocks] = useState([]);
   const [name, setName] = useState(randName);
-
-  // const updateRegister = (registerId, data) => {
-  //   let newRegisters = { ...registers };
-  //   newRegisters[registerId].data = data;
-  //   setRegisters(newRegisters);
-  //   console.log(registers);
-  // };
 
   const [_, updateState] = React.useState();
   const forceUpdate = useCallback(() => updateState({}), []);
 
-  // const getLocalRegisters = () => {
-  //   return JSON.parse(localStorage.getItem("registers"));
-  // };
-
-  // const setLocalRegisters = (registerId, data) => {
-  //   let newRegisters = getLocalRegisters();
-  //   newRegisters[registerId].data = data;
-  //   localStorage.setItem("registers", JSON.stringify(newRegisters));
-  //   socket.emit("clientUpdateRegisters");
-  // };
-
-  const writeToRegister = (registerId, data) => {
-    const isLocked = registers[registerId].isLocked;
-    const isOwner = name === registers[registerId].owner;
-    if (isLocked && isOwner) {
-      socket.emit("writeToRegister", { registerId: registerId, data: data });
-    }
+  const readRegisters = async () => {
+    const url = proxyServer + "/read";
+    const res = await axios.get(url, {}, { withCredentials: true });
+    let newRegisters = res.data;
+    newRegisters.sort((a, b) => (a.y_id > b.y_id ? 1 : -1));
+    setRegisters(newRegisters);
+    console.log(newRegisters);
   };
 
-  const lockRegister = registerId => {
-    socket.emit("lockRegister", { name: name, registerId: registerId });
+  const readRegisterLocks = async () => {
+    const url = proxyServer + "/readLocks";
+
+    const res = await axios.get(url, {}, { withCredentials: true });
+    const locks = Object.values(res.data);
+    setRegisterLocks(locks);
   };
 
-  const unlockRegister = registerId => {
-    socket.emit("unlockRegister", { name: name, registerId: registerId });
+  const isOwner = registerIdx => {
+    if (registerLocks.length == 0) return false;
+    return registerLocks[registerIdx].Owner === name;
+  };
+
+  const writeToRegister = async (registerID, data) => {
+    console.log(registerID);
+    const url = proxyServer + "/write";
+    const params = {
+      name: name,
+      registerID: registerID
+    };
+    const res = await axios.post(
+      url,
+      data,
+      { params: params },
+      { withCredentials: true }
+    );
+    await readRegisters();
+  };
+
+  const lockRegister = async registerID => {
+    console.log(registerID);
+    const url = proxyServer + "/lock";
+    const params = {
+      name: name,
+      registerID: registerID
+    };
+    const res = await axios.get(
+      url,
+      { params: params },
+      { withCredentials: true }
+    );
+    await readRegisterLocks();
+    console.log(res.data);
+  };
+
+  const unlockRegister = async registerID => {
+    const url = proxyServer + "/unlock";
+    const params = {
+      name: name,
+      registerID: registerID
+    };
+    const res = await axios.get(
+      url,
+      { params: params },
+      { withCredentials: true }
+    );
+    await readRegisterLocks();
+    console.log(res.data);
   };
 
   const renderUserChips = userChips.map(chip => {
@@ -102,48 +130,46 @@ function App() {
 
     const res = await axios.get(
       url,
-      { params: params, withCredentials: true },
+      { params: params },
       { withCredentials: true }
     );
-    console.log(res);
+    console.log(res.data);
   };
 
   useEffect(() => {
-    chooseProxy();
-
-    socket.on("registerUpdate", registers => {
-      setRegisters(registers);
-    });
+    const fetchData = async () => {
+      await chooseProxy();
+      await readRegisters();
+      await readRegisterLocks();
+    };
+    fetchData();
   }, []);
 
-  const renderPages = Object.keys(registers).map(registerId => {
+  const renderPages = Object.keys(registers).map(registerIdx => {
+    const registerID = registers[registerIdx].y_id;
     return (
-      <SPaperC
-        key={registerId}
-        isOwner={
-          registers[registerId].isLocked && registers[registerId].owner === name
-        }
-      >
+      <SPaperC key={registerID} isOwner={isOwner(registerIdx)}>
         <OwnerBar
           name={name}
-          registerId={registerId}
-          register={registers[registerId]}
+          registerID={registerID}
+          register={registers[registerIdx]}
+          isOwner={isOwner(registerIdx)}
           lockRegister={lockRegister}
           unlockRegister={unlockRegister}
         />
         <div className="page-container">
           <BasicEditor
-            registerId={registerId}
-            register={registers[registerId]}
+            registerID={registerID}
+            register={registers[registerIdx]}
             updateRegister={writeToRegister}
           />
           {/* <CollabEditor
-            pageId={registerId}
+            pageId={registerID}
             userChips={userChips}
             setUserChips={setUserChips}
           /> */}
         </div>
-        <p className="page-number">{registerId}</p>
+        <p className="page-number">{registerID}</p>
       </SPaperC>
     );
   });

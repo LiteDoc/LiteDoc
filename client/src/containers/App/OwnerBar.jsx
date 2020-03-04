@@ -30,25 +30,34 @@ const SLockButton = styled.div`
 `;
 
 const OwnerBar = props => {
-  const { name, registerId, register, lockRegister, unlockRegister } = props;
+  let {
+    name,
+    registerID,
+    register,
+    isOwner,
+    lockRegister,
+    unlockRegister
+  } = props;
+
   return (
     <SOwnerBar>
-      {register.isLocked && name === register.owner ? (
+      {isOwner ? ( // user is owner and register is locked
         <>
           <UserChip name={register.owner} />
           <SLockButton
             color={theme.red}
-            onClick={() => unlockRegister(registerId)}
+            onClick={() => unlockRegister(registerID)}
           >
             <span>Unlock</span>
           </SLockButton>
         </>
-      ) : register.isLocked ? (
-        <UserChip name={register.owner} />
+      ) : register.isLocked ? ( // user is not owner and register is locked
+        <UserChip name={"temp"} />
       ) : (
+        // unlocked and unowned
         <SLockButton
           color={theme.green}
-          onClick={() => lockRegister(registerId)}
+          onClick={() => lockRegister(registerID)}
         >
           <span>Lock</span>
         </SLockButton>

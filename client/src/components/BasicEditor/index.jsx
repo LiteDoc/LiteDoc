@@ -11,14 +11,14 @@ const STextArea = styled.textarea`
 `;
 
 const BasicEditor = props => {
-  const { registerId, register, updateRegister } = props;
+  const { registerID, register, updateRegister } = props;
 
   const onChange = e => {
-    updateRegister(registerId, e.target.value);
+    updateRegister(registerID, e.target.value);
   };
 
   return (
-    <STextArea rows="8" cols="40" value={register.data} onChange={onChange} />
+    <STextArea rows="8" cols="40" value={register.field0} onChange={onChange} />
   );
 };
 
