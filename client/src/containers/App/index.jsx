@@ -8,7 +8,7 @@ import { GlobalStyle } from "utils";
 import { MenuBar, ToolBar, CollabEditor } from "containers";
 import UserChip from "./UserChip";
 import OwnerBar from "./OwnerBar";
-import { BasicEditor } from "components";
+import { BasicEditor, DraftEditor } from "components";
 
 const SPaperC = styled.div`
   .page-container {
@@ -17,7 +17,7 @@ const SPaperC = styled.div`
     border-radius: 10px;
     box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1), 0 5px 10px rgba(0, 0, 0, 0.15);
     background-color: ${props =>
-      props.isOwner ? "white" : "rgb(225,225,225)"};
+      props.isOwner ? "white" : "rgb(245,245,245)"};
     width: 800px;
     height: 1050px;
   }
@@ -42,7 +42,11 @@ function App() {
   const [proxyServer, setProxyServer] = useState(availableServers[0]);
   const [userChips, setUserChips] = useState([{ name: "Roger", location: 0 }]);
   const [registers, setRegisters] = useState([]);
-  const [registerLocks, setRegisterLocks] = useState([]);
+  const [registerLocks, setRegisterLocks] = useState([
+    { Owner: "none" },
+    { Owner: "none" },
+    { Owner: "none" }
+  ]);
   const [name, setName] = useState(randName);
 
   const [_, updateState] = React.useState();
@@ -54,15 +58,16 @@ function App() {
     let newRegisters = res.data;
     newRegisters.sort((a, b) => (a.y_id > b.y_id ? 1 : -1));
     setRegisters(newRegisters);
-    console.log(newRegisters);
+    // console.log(newRegisters);
   };
 
   const readRegisterLocks = async () => {
     const url = proxyServer + "/readLocks";
 
     const res = await axios.get(url, {}, { withCredentials: true });
-    const locks = Object.values(res.data);
-    setRegisterLocks(locks);
+    let newLocks = Object.values(res.data);
+    setRegisterLocks(newLocks);
+    // console.log(newLocks);
   };
 
   const isOwner = registerIdx => {
@@ -71,7 +76,6 @@ function App() {
   };
 
   const writeToRegister = async (registerID, data) => {
-    console.log(registerID);
     const url = proxyServer + "/write";
     const params = {
       name: name,
@@ -87,7 +91,6 @@ function App() {
   };
 
   const lockRegister = async registerID => {
-    console.log(registerID);
     const url = proxyServer + "/lock";
     const params = {
       name: name,
@@ -99,7 +102,6 @@ function App() {
       { withCredentials: true }
     );
     await readRegisterLocks();
-    console.log(res.data);
   };
 
   const unlockRegister = async registerID => {
@@ -114,7 +116,6 @@ function App() {
       { withCredentials: true }
     );
     await readRegisterLocks();
-    console.log(res.data);
   };
 
   const renderUserChips = userChips.map(chip => {
@@ -133,7 +134,6 @@ function App() {
       { params: params },
       { withCredentials: true }
     );
-    console.log(res.data);
   };
 
   useEffect(() => {
@@ -143,6 +143,12 @@ function App() {
       await readRegisterLocks();
     };
     fetchData();
+
+    const fetchLoop = setInterval(async () => {
+      await readRegisters();
+      await readRegisterLocks();
+    }, 250);
+    return () => clearInterval(fetchLoop);
   }, []);
 
   const renderPages = Object.keys(registers).map(registerIdx => {
@@ -150,15 +156,15 @@ function App() {
     return (
       <SPaperC key={registerID} isOwner={isOwner(registerIdx)}>
         <OwnerBar
-          name={name}
+          ownerName={registerLocks[registerIdx].Owner}
           registerID={registerID}
-          register={registers[registerIdx]}
           isOwner={isOwner(registerIdx)}
+          isLocked={registerLocks[registerIdx].Owner !== "none"}
           lockRegister={lockRegister}
           unlockRegister={unlockRegister}
         />
         <div className="page-container">
-          <BasicEditor
+          <DraftEditor
             registerID={registerID}
             register={registers[registerIdx]}
             updateRegister={writeToRegister}

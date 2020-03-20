@@ -28,8 +28,7 @@ const MenuBar = props => {
     <SMenuBar>
       <MenuButton />
       <DocTitle />
-      {props.name}
-      <OnlineUsers />
+      <OnlineUsers name={props.name} />
     </SMenuBar>
   );
 };

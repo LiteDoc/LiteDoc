@@ -8,7 +8,6 @@ const SOwnerBar = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
-  margin: auto;
 `;
 
 const SLockButton = styled.div`
@@ -31,10 +30,10 @@ const SLockButton = styled.div`
 
 const OwnerBar = props => {
   let {
-    name,
+    ownerName,
     registerID,
-    register,
     isOwner,
+    isLocked,
     lockRegister,
     unlockRegister
   } = props;
@@ -43,7 +42,7 @@ const OwnerBar = props => {
     <SOwnerBar>
       {isOwner ? ( // user is owner and register is locked
         <>
-          <UserChip name={register.owner} />
+          <UserChip name={ownerName} />
           <SLockButton
             color={theme.red}
             onClick={() => unlockRegister(registerID)}
@@ -51,8 +50,8 @@ const OwnerBar = props => {
             <span>Unlock</span>
           </SLockButton>
         </>
-      ) : register.isLocked ? ( // user is not owner and register is locked
-        <UserChip name={"temp"} />
+      ) : isLocked ? ( // user is not owner and register is locked
+        <UserChip name={ownerName} />
       ) : (
         // unlocked and unowned
         <SLockButton
