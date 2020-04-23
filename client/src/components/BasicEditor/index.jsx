@@ -2,6 +2,8 @@ import React, { useState, useRef } from "react";
 import styled from "styled-components";
 
 const STextArea = styled.textarea`
+  outline: none;
+
   width: 100%;
   height: 100%;
   background-color: transparent;

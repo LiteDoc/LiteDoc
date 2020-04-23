@@ -11,7 +11,7 @@ const SOwnerBar = styled.div`
 `;
 
 const SLockButton = styled.div`
-  background-color: ${props => props.color};
+  background-color: ${(props) => props.color};
   padding: 15px 25px;
   margin: 15px;
   border-radius: 30px;
@@ -28,14 +28,14 @@ const SLockButton = styled.div`
   }
 `;
 
-const OwnerBar = props => {
+const OwnerBar = (props) => {
   let {
     ownerName,
     registerID,
     isOwner,
     isLocked,
     lockRegister,
-    unlockRegister
+    unlockRegister,
   } = props;
 
   return (
