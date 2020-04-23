@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import axios from "axios";
 import io from "socket.io-client";
 
@@ -11,17 +11,25 @@ import OwnerBar from "./OwnerBar";
 import { BasicEditor, DraftEditor } from "components";
 
 const SPaperC = styled.div`
+  .bg {
+    position: absolute;
+    width: 100%;
+    height: 1250px;
+  }
   .page-container {
+    position: relative;
     padding: 25px;
     margin: auto;
     border-radius: 10px;
     box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1), 0 5px 10px rgba(0, 0, 0, 0.15);
-    background-color: ${props =>
-      props.isOwner ? "white" : "rgb(245,245,245)"};
-    width: 800px;
-    height: 1050px;
+    background-color: ${(props) =>
+      props.isOwner ? "white" : "rgb(235,235,235)"};
+    box-shadow: ${(props) => "0px 6px 15px 0px " + props.color};
+    width: 600px;
+    height: 900px;
   }
   .page-number {
+    position: relative;
     display: block;
     text-align: center;
     margin-bottom: 25px;
@@ -31,12 +39,12 @@ const SPaperC = styled.div`
 const availableServers = [
   "http://localhost:4001",
   "http://localhost:4002",
-  "http://localhost:4003"
+  "http://localhost:4003",
 ];
 
 function App() {
-  // let names = ["Roger", "Lewis", "Haochen", "Sapta"];
-  let names = ["Roger"];
+  let names = ["Lewis", "Haochen", "Sapta"];
+  // let names = ["Sapta"];
   let randName = names[Math.floor(Math.random() * names.length)];
 
   const [proxyServer, setProxyServer] = useState(availableServers[0]);
@@ -45,7 +53,7 @@ function App() {
   const [registerLocks, setRegisterLocks] = useState([
     { Owner: "none" },
     { Owner: "none" },
-    { Owner: "none" }
+    { Owner: "none" },
   ]);
   const [name, setName] = useState(randName);
 
@@ -70,7 +78,7 @@ function App() {
     // console.log(newLocks);
   };
 
-  const isOwner = registerIdx => {
+  const isOwner = (registerIdx) => {
     if (registerLocks.length == 0) return false;
     return registerLocks[registerIdx].Owner === name;
   };
@@ -79,7 +87,7 @@ function App() {
     const url = proxyServer + "/write";
     const params = {
       name: name,
-      registerID: registerID
+      registerID: registerID,
     };
     const res = await axios.post(
       url,
@@ -90,11 +98,11 @@ function App() {
     await readRegisters();
   };
 
-  const lockRegister = async registerID => {
+  const lockRegister = async (registerID) => {
     const url = proxyServer + "/lock";
     const params = {
       name: name,
-      registerID: registerID
+      registerID: registerID,
     };
     const res = await axios.get(
       url,
@@ -104,11 +112,11 @@ function App() {
     await readRegisterLocks();
   };
 
-  const unlockRegister = async registerID => {
+  const unlockRegister = async (registerID) => {
     const url = proxyServer + "/unlock";
     const params = {
       name: name,
-      registerID: registerID
+      registerID: registerID,
     };
     const res = await axios.get(
       url,
@@ -118,13 +126,25 @@ function App() {
     await readRegisterLocks();
   };
 
-  const renderUserChips = userChips.map(chip => {
+  const renderUserChips = userChips.map((chip) => {
     return <UserChip userChip={chip} />;
   });
 
+  const ownerToColor = (owner) => {
+    return owner === "Roger"
+      ? "rgba(212, 61, 61, 0.5)" // red
+      : owner === "Haochen"
+      ? "rgba(212, 61, 61, 0.5)" // red
+      : owner === "Lewis"
+      ? "rgba(245, 224, 66, 0.5)" // yellow
+      : owner === "Sapta"
+      ? "rgba(52, 17, 207, 0.5)" // purple
+      : "none";
+  };
+
   const chooseProxy = async () => {
     let params = {
-      name: name
+      name: name,
     };
 
     let url = proxyServer + "/connect";
@@ -144,6 +164,7 @@ function App() {
     };
     fetchData();
 
+    // pull updates constantly
     const fetchLoop = setInterval(async () => {
       await readRegisters();
       await readRegisterLocks();
@@ -151,29 +172,46 @@ function App() {
     return () => clearInterval(fetchLoop);
   }, []);
 
-  const renderPages = Object.keys(registers).map(registerIdx => {
+  const renderPages = Object.keys(registers).map((registerIdx) => {
     const registerID = registers[registerIdx].y_id;
     return (
-      <SPaperC key={registerID} isOwner={isOwner(registerIdx)}>
-        <OwnerBar
+      <SPaperC
+        key={registerID}
+        isOwner={isOwner(registerIdx)}
+        color={ownerToColor(registerLocks[registerIdx].Owner)}
+      >
+        <div
+          className="bg"
+          onClick={() => {
+            registers.forEach((register) => {
+              unlockRegister(register.y_id);
+            });
+          }}
+        ></div>
+        {/* <OwnerBar
           ownerName={registerLocks[registerIdx].Owner}
           registerID={registerID}
           isOwner={isOwner(registerIdx)}
           isLocked={registerLocks[registerIdx].Owner !== "none"}
           lockRegister={lockRegister}
           unlockRegister={unlockRegister}
-        />
-        <div className="page-container">
-          <DraftEditor
+        /> */}
+        <div
+          className="page-container"
+          onClick={() => {
+            if (registerLocks[registerIdx].Owner === "none") {
+              registers.forEach((register) => {
+                unlockRegister(register.y_id);
+              });
+              lockRegister(registerID);
+            }
+          }}
+        >
+          <BasicEditor
             registerID={registerID}
             register={registers[registerIdx]}
             updateRegister={writeToRegister}
           />
-          {/* <CollabEditor
-            pageId={registerID}
-            userChips={userChips}
-            setUserChips={setUserChips}
-          /> */}
         </div>
         <p className="page-number">{registerID}</p>
       </SPaperC>
@@ -187,7 +225,7 @@ function App() {
         <MenuBar name={name} />
         <ToolBar />
         <h1>{name}</h1>
-        <div style={{ marginTop: "125px" }} />
+        <div style={{ marginTop: "100px" }} />
         <div>{renderPages}</div>
         {/* <div>{renderUserChips}</div> */}
       </div>
